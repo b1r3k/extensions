@@ -1,0 +1,10 @@
+version: v1alpha1
+metadata:
+  name: netmaker-client
+  version: "$VERSION"
+  author: Lukasz Jachym
+  description: |
+    Netmaker lets you create, manage, and automate virtual overlay networks using WireGuard. If you have two or more devices that need to communicate securely, Netmaker will help you forge the connection, allowing you to scale up to hundreds, or thousands, of devices, environments, networks, and users.
+  compatibility:
+    talos:
+      version: ">= v1.5.0"

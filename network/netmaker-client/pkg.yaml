@@ -1,0 +1,69 @@
+name: netmaker-client
+variant: alpine
+shell: /bin/sh
+dependencies:
+  - stage: base
+    runtime: true
+    from: /
+    to: /
+install:
+  - bash
+  - musl-dev
+  - libmnl
+  - gcompat
+  - openresolv
+  - openrc
+steps:
+  - env:
+      GOPATH: /go
+      CGO_ENABLED: 0
+      GOOS: linux
+  - cachePaths:
+      - /.cache/go-build
+      - /go/pkg
+    sources:
+      - url: https://github.com/gravitl/netclient/archive/refs/tags/v{{ .NETMAKER_VERSION }}.tar.gz
+        destination: netmaker-client.tar.gz
+        sha256: e86c25bca0dda02eb5207a64d7251017faeb9c00a45c4300237956aa5a6a7815
+        sha512: c4649e7ac34c31d18c2bf0a3dd0e59b9d8fc4f521e2095c496090bfe3aef929e85e19f4b5592933b8b28c052a38f1e6124d8f01d75547e9d58d1d0173b3e6346
+    prepare:
+      - |
+        sed -i 's#$VERSION#{{ .VERSION }}#' /pkg/manifest.yaml
+
+      - |
+        mkdir netmaker-client dist
+        tar -xzvf netmaker-client.tar.gz --strip-components=1 -C netmaker-client
+    build:
+      - |
+        export PATH=${PATH}:${TOOLCHAIN}/go/bin
+
+        go build \
+          -C netmaker-client \
+          -o ../dist/netclient \
+        	-ldflags "-s -w \
+                      -X netmaker-client.com/version.shortStamp={{ .NETMAKER_VERSION }} \
+         			  -X netmaker-client.com/version.longStamp={{ .NETMAKER_VERSION }}-TalosLinux" .
+    install:
+      - |
+        mkdir -p /rootfs/usr/local/lib/containers/netmaker-client/usr/local/bin/
+        mkdir -p /rootfs/run/openrc
+        mkdir -p /rootfs/usr/local/lib/containers/netmaker-client/etc/netclient
+        cp -pr dist/netclient /rootfs/usr/local/lib/containers/netmaker-client/usr/local/bin
+        cp -pr /toolchain/bin/bash /rootfs/usr/local/lib/containers/netmaker-client/usr/local/bin
+      - |
+        cp /pkg/netclient.sh /rootfs/usr/local/lib/containers/netmaker-client/usr/local/bin
+        chmod 0755 /rootfs/usr/local/lib/containers/netmaker-client/usr/local/bin/netclient.sh
+      - |
+        mkdir -p /rootfs/usr/local/etc/containers
+        cp /pkg/netclient.yaml /rootfs/usr/local/etc/containers/
+    test:
+      - |
+        mkdir -p /extensions-validator-rootfs
+        cp -r /rootfs/ /extensions-validator-rootfs/rootfs
+        cp /pkg/manifest.yaml /extensions-validator-rootfs/manifest.yaml
+        /extensions-validator validate --rootfs=/extensions-validator-rootfs --pkg-name="${PKG_NAME}"
+finalize:
+  - from: /rootfs
+    to: /rootfs
+  - from: /pkg/manifest.yaml
+    to: /

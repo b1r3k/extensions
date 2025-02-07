@@ -1,0 +1,55 @@
+name: netmaker-client
+depends:
+  - service: cri
+  - network:
+    - addresses
+    - connectivity
+    - etcfiles
+  - configuration: true
+container:
+  entrypoint: /usr/local/bin/bash
+  args:
+  - /usr/local/bin/netclient.sh
+  environment:
+  - PATH=/bin:/sbin:/usr/local/bin
+  security:
+    writeableRootfs: true
+    writeableSysfs: true
+  mounts:
+  # libs
+  - source: /lib
+    destination: /lib
+    type: bind
+    options:
+      - bind
+      - ro
+  # more libs
+  - source: /usr/lib
+    destination: /usr/lib
+    type: bind
+    options:
+      - bind
+      - ro
+  ## Required for tailscale. Ip addr and other commands
+  - source: /sbin
+    destination: /sbin
+    type: bind
+    options:
+      - bind
+      - ro
+  ## Tailscale needs to write to this to create the interfaces
+  - source: /dev/net/tun
+    destination: /dev/net/tun
+    type: bind
+    options:
+      - bind
+      - rw
+  ## netclient writes logs to file
+  - source: /var/log
+    destination: /var/log
+    type: bind
+    options:
+      - bind
+      - rw
+restart: always
+logToConsole: true

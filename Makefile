@@ -94,6 +94,7 @@ TARGETS += realtek-firmware
 TARGETS += spin
 TARGETS += stargz-snapshotter
 TARGETS += tailscale
+TARGETS += netmaker-client
 TARGETS += thunderbolt
 TARGETS += uinput
 TARGETS += usb-modem-drivers
