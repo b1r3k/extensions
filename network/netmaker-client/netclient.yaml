@@ -7,7 +7,7 @@ depends:
     - etcfiles
   - configuration: true
 container:
-  entrypoint: /usr/local/bin/bash
+  entrypoint: /bin/bash
   args:
   - /usr/local/bin/netclient.sh
   environment:
